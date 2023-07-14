@@ -9,7 +9,7 @@
 ``` groovy
 
      @shared Sql sql = Sql.newInstance(“jdbc:h2:mem:” , “org.h2.Driver”)
-     
+    
 ```
 
 ## Maven
@@ -17,90 +17,178 @@
 ### Pom for running both spock and junit
 
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.mzimecki</groupId>
-    <artifactId>spock-test-app</artifactId>
-    <version>1.0-SNAPSHOT</version>
+<build>
+    <plugins>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
+        <!-- Mandatory plugins for using Spock -->
+        <plugin>
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>compile</goal>
+                        <goal>compileTests</goal>
+                        <!--                            <goal>addSources</goal>-->
+                        <!--                            <goal>addTestSources</goal>-->
+                        <!--                            <goal>generateStubs</goal>-->
+                        <!--                            <goal>generateTestStubs</goal>-->
+                        <!--                            <goal>removeStubs</goal>-->
+                        <!--                            <goal>removeTestStubs</goal>-->
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <invokeDynamic>true</invokeDynamic>
+            </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0-M7</version>
+            <configuration>
+                <useModulePath>false</useModulePath> <!-- https://issues.apache.org/jira/browse/SUREFIRE-1809 -->
+                <useFile>false</useFile>
+                <includes>
+                    <include>**/*Spec.class</include>
+                    <include>**/*Test.java</include>
+                    <include>**/*Test.groovy</include>
+                    <include>**/*Spec.groovy</include>
+                </includes>
+                <statelessTestsetReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+                    <disable>false</disable>
+                    <version>3.0</version>
+                    <usePhrasedFileName>false</usePhrasedFileName>
+                    <usePhrasedTestSuiteClassName>true</usePhrasedTestSuiteClassName>
+                    <usePhrasedTestCaseClassName>true</usePhrasedTestCaseClassName>
+                    <usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+                </statelessTestsetReporter>
+            </configuration>
+        </plugin>
+        <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>3.0.0-M7</version>
+        </plugin>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+<repositories>
+<repository>
+    <id>gitlab-maven</id>
+    <url>https://gitlab.guardianportal.us/api/v4/groups/5/-/packages/maven</url>
+</repository>
+</repositories>
+<dependencyManagement>
+<dependencies>
+    <dependency>
+        <groupId>org.spockframework</groupId>
+        <artifactId>spock-bom</artifactId>
+        <version>2.1-groovy-3.0</version>
+        <!-- use below for Groovy 4 -->
+        <!-- <version>2.2-M1-groovy-4.0</version> -->
+        <type>pom</type>
+        <scope>import</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.9.3</version>
+        <type>pom</type>
+        <scope>import</scope>
+    </dependency>
+</dependencies>
+</dependencyManagement>
+<dependencies>
+<dependency>
+    <groupId>org.spockframework</groupId>
+    <artifactId>spock-core</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.apache.groovy</groupId>
+    <artifactId>groovy</artifactId>
+    <version>4.0.6</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.groovy</groupId>
+    <artifactId>groovy-sql</artifactId>
+    <version>4.0.13</version>
+</dependency>
+<dependency> <!-- enables mocking of classes (in addition to interfaces) -->
+    <groupId>net.bytebuddy</groupId>
+    <artifactId>byte-buddy</artifactId>
+    <version>1.12.17</version>
+    <scope>test</scope>
+</dependency>
+<dependency> <!-- enables mocking of classes without default constructor (together with CGLIB) -->
+    <groupId>org.objenesis</groupId>
+    <artifactId>objenesis</artifactId>
+    <version>3.3</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <version>5.9.3</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-api</artifactId>
+    <version>5.9.3</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-engine</artifactId>
+    <version>5.9.3</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.junit.platform</groupId>
+    <artifactId>junit-platform-launcher</artifactId>
+    <version>1.9.3</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.junit.platform</groupId>
+    <artifactId>junit-platform-engine</artifactId>
+</dependency>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.5.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <version>5.5.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.spockframework</groupId>
-            <artifactId>spock-core</artifactId>
-            <version>2.0-M2-groovy-3.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy</artifactId>
-            <classifier>indy</classifier>
-            <version>3.0.3</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <release>13</release>
-                    <compilerId>groovy-eclipse-compiler</compilerId>
-                    <compilerArguments>
-                        <indy/>
-                    </compilerArguments>
-                    <failOnWarning>false</failOnWarning>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-eclipse-compiler</artifactId>
-                        <version>3.6.0-03</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-eclipse-batch</artifactId>
-                        <version>3.0.3-01</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M4</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Test.java</include>
-                        <include>**/*Test.groovy</include>
-                        <include>**/*Spec.groovy</include>
-                    </includes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+<!-- add dependencies to enable JUnit 4 style tests -->
+<!-- add dependencies to enable JUnit 4 style tests -->
+<dependency>
+    <groupId>org.junit.vintage</groupId>
+    <artifactId>junit-vintage-engine</artifactId>
+    <version>5.9.3</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.spockframework</groupId>
+    <artifactId>spock-junit4</artifactId>
+    <version>2.3-groovy-4.0</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.13.2</version>
+    <scope>test</scope>
+</dependency>
+<!-- add dependencies to enable JUnit 4 style tests -->
+<!-- add dependencies to enable JUnit 4 style tests -->
+</dependencies>
 ```
 
 ---
@@ -128,7 +216,7 @@ class StudentControllerSpec extends Specification implements ControllerUnitTest<
         controller.index()
 
         then: 'The model is correct'
-        model.studentList 
+        model.studentList
         model.studentList.size() == sampleStudents.size()
         model.studentList.find { it.name == 'Nirav' && it.grade == 100 }
         model.studentList.find { it.name == 'Jeff' && it.grade == 95 }
@@ -144,13 +232,13 @@ class StudentControllerSpec extends Specification implements ControllerUnitTest<
     def 'If you save without supplying name and grade(both required) you remain in the create form'() {
 
         when:
-        request.contentType = FORM_CONTENT_TYPE 
-        request.method = 'POST' 
+        request.contentType = FORM_CONTENT_TYPE
+        request.method = 'POST'
         controller.save()
 
         then:
         model.student
-        view == 'create' 
+        view == 'create'
     }
 
 }
@@ -175,18 +263,18 @@ class StudentControllerSpec extends Specification implements ControllerUnitTest<
         when:
         request.method = 'POST'
         request.contentType = FORM_CONTENT_TYPE
-        params['name'] =  name 
+        params['name'] = name
         params['grade'] = grade
-        controller.save() 
+        controller.save()
 
         then: 'a message indicating that the user has been saved is placed'
-        flash.message 
+        flash.message
 
         and: 'the user is redirected to show the student'
-        response.redirectedUrl.startsWith('/student/show') 
+        response.redirectedUrl.startsWith('/student/show')
 
         and: 'a found response code is used'
-        response.status == 302 
+        response.status == 302
     }
 
 }
@@ -210,11 +298,11 @@ class StudentControllerSpec extends Specification implements ControllerUnitTest<
 
         when: 'json request is sent with domain conversion'
         request.method = 'POST'
-        request.json = '{"name":"' + name + '","grade":' + grade + '}' 
+        request.json = '{"name":"' + name + '","grade":' + grade + '}'
         controller.save()
 
         then: 'CREATED status code is set'
-        response.status == 201 
+        response.status == 201
     }
 
 }
@@ -253,15 +341,18 @@ class StudentControllerAllowedMethodsSpec extends Specification implements Contr
     }
 }
 ```
+
 > functional test
 
 - build.gradle
+
 ```gradle
 dependencies {
 ...
     testImplementation "io.micronaut:micronaut-http-client"
 }
 ```
+
 ```groovy
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
@@ -277,14 +368,15 @@ import spock.lang.Specification
 @Integration
 class StudentControllerIntSpec extends Specification {
 
-    @Shared HttpClient client
+    @Shared
+    HttpClient client
 
     StudentService studentService
 
     @OnceBefore
     void init() {
         String baseUrl = "http://localhost:$serverPort"
-        this.client  = HttpClient.create(baseUrl.toURL())
+        this.client = HttpClient.create(baseUrl.toURL())
     }
 
     def 'test json in URI to return students'() {
@@ -300,16 +392,16 @@ class StudentControllerIntSpec extends Specification {
         studentService.count() == 3
 
         when:
-        HttpRequest request = HttpRequest.GET('/student.json') 
-        HttpResponse<List<Map>> resp = client.toBlocking().exchange(request, Argument.of(List, Map)) 
+        HttpRequest request = HttpRequest.GET('/student.json')
+        HttpResponse<List<Map>> resp = client.toBlocking().exchange(request, Argument.of(List, Map))
 
         then:
-        resp.status == HttpStatus.OK 
+        resp.status == HttpStatus.OK
         resp.body()
         resp.body().size() == 3
         resp.body().find { it.grade == 100 && it.name == 'Nirav' }
-        resp.body().find { it.grade == 95 &&  it.name == 'Jeff' }
-        resp.body().find { it.grade == 90 &&  it.name == 'Sergio' }
+        resp.body().find { it.grade == 95 && it.name == 'Jeff' }
+        resp.body().find { it.grade == 90 && it.name == 'Sergio' }
 
         cleanup:
         Student.withNewTransaction {
@@ -344,21 +436,21 @@ class ApiAnnouncementControllerSpec extends Specification {
     @AutoCleanup
     HttpClient client
 
-    @OnceBefore 
+    @OnceBefore
     void init() {
-        client  = HttpClient.create(new URL("http://localhost:$serverPort")) 
+        client = HttpClient.create(new URL("http://localhost:$serverPort"))
     }
 
     def 'test /api/announcements url is secured'() {
         when:
         HttpRequest request = HttpRequest.GET('/api/announcements')
-        client.toBlocking().exchange(request,  
+        client.toBlocking().exchange(request,
                 Argument.of(List, AnnouncementView),
                 Argument.of(CustomError))
 
         then:
         HttpClientException e = thrown(HttpClientException)
-        e.response.status == HttpStatus.UNAUTHORIZED 
+        e.response.status == HttpStatus.UNAUTHORIZED
 
         when:
         Optional<CustomError> jsonError = e.response.getBody(CustomError)
@@ -374,7 +466,7 @@ class ApiAnnouncementControllerSpec extends Specification {
     def "test a user with the role ROLE_BOSS is able to access /api/announcements url"() {
         when: 'login with the sherlock'
         UserCredentials credentials = new UserCredentials(username: 'sherlock', password: 'elementary')
-        HttpRequest request = HttpRequest.POST('/api/login', credentials) 
+        HttpRequest request = HttpRequest.POST('/api/login', credentials)
         HttpResponse<BearerToken> resp = client.toBlocking().exchange(request, BearerToken)
 
         then:
@@ -389,14 +481,14 @@ class ApiAnnouncementControllerSpec extends Specification {
 
         when:
         HttpResponse<List> rsp = client.toBlocking().exchange(HttpRequest.GET('/api/announcements')
-                .header('Authorization', "Bearer ${accessToken}"), Argument.of(List, AnnouncementView)) 
+                .header('Authorization', "Bearer ${accessToken}"), Argument.of(List, AnnouncementView))
 
         then:
-        rsp.status.code == 200 
+        rsp.status.code == 200
         rsp.body() != null
-        ((List)rsp.body()).size() == 1
-        ((List)rsp.body()).get(0) instanceof AnnouncementView
-        ((AnnouncementView) ((List)rsp.body()).get(0)).message == 'The Hound of the Baskervilles'
+        ((List) rsp.body()).size() == 1
+        ((List) rsp.body()).get(0) instanceof AnnouncementView
+        ((AnnouncementView) ((List) rsp.body()).get(0)).message == 'The Hound of the Baskervilles'
     }
 
     def "test a user with the role ROLE_EMPLOYEE is NOT able to access /api/announcements url"() {
@@ -423,7 +515,7 @@ class ApiAnnouncementControllerSpec extends Specification {
 
         then:
         def e = thrown(HttpClientException)
-        e.response.status == HttpStatus.FORBIDDEN 
+        e.response.status == HttpStatus.FORBIDDEN
     }
 }
 ```
@@ -558,7 +650,7 @@ class SignUpPage extends Page {
         firstNameInput { $(name: "firstName").module(TextInput) }
         lastNameInput { $(name: "lastName").module(TextInput) }
         emailInput { $(name: "email").module(TextInput) }
-        submitButton {  $('#submit') }
+        submitButton { $('#submit') }
     }
 
     void submit(String firstName, String lastName, String email) {
@@ -615,7 +707,6 @@ class RegisterControllerSpec extends GebSpec {
    [service/controller/domain].metaclass.’static’.[method] = {[arguments] -> [what to return]}
    
 ```
-
 
 ## Checking validity of constraints
 
@@ -838,35 +929,36 @@ class StatisticsServiceSpec extends Specification implements AutowiredTest, Data
 ```
 
 - config file test/resources/TestDataConfig
+
 ```java
 import com.talentbank.core.ClientSetup
 
 import java.util.concurrent.ThreadLocalRandom
 
 //config file for test data plugin
-testDataConfig {
-    sampleData {
-        unitAdditionalBuild = ['com.talentbank.core.assessmentOrder.AssessmentOrder': [com.talentbank.core.ClientSetup]]
+testDataConfig{
+        sampleData{
+        unitAdditionalBuild=['com.talentbank.core.assessmentOrder.AssessmentOrder':[com.talentbank.core.ClientSetup]]
 
-        'com.talentbank.core.ClientSetup' {
-            //work around for unique constraints
-            def i = 55
-            clientId = { -> ThreadLocalRandom.current().nextLong(100000) }
-            companyCode = { -> "company${i}" }
-            clientName = { -> "clientName${i++}" }
+        'com.talentbank.core.ClientSetup'{
+        //work around for unique constraints
+        def i=55
+        clientId={->ThreadLocalRandom.current().nextLong(100000)}
+        companyCode={->"company${i}"}
+        clientName={->"clientName${i++}"}
         }
 
-        'com.talentbank.core.User' {
-            def i = 55
-            username = { -> "email${i++}@mailinator.com" }
-            email = { -> "email${i}@mailinator.com" }
+        'com.talentbank.core.User'{
+        def i=55
+        username={->"email${i++}@mailinator.com"}
+        email={->"email${i}@mailinator.com"}
         }
 
-        'com.talentbank.core.assessmentOrder.AssessmentOrder' {
-            clientSetup = { -> ClientSetup.build() }
+        'com.talentbank.core.assessmentOrder.AssessmentOrder'{
+        clientSetup={->ClientSetup.build()}
         }
-    }
-}
+        }
+        }
 
 ```
 
